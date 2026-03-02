@@ -1,118 +1,71 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Admin | Md Arafat Hosen</title>
+    <title>Admin Login | Md Arafat Hosen</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* পেজ লোড হওয়ার আগে কন্টেন্ট হাইড করে রাখা */
-        #adminContent { display: none; }
-        .sidebar-link:hover { background: #1e293b; border-left: 4px solid #6366f1; }
+        body { background: #0f172a; }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="flex items-center justify-center min-h-screen">
 
-    <div id="loader" class="flex items-center justify-center min-h-screen">
-        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-    </div>
+    <div class="glass-card p-10 rounded-2xl shadow-2xl w-full max-w-md">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-white uppercase tracking-widest">Admin Access</h2>
+            <p class="text-gray-400 mt-2">Secure Login for mdarafathosen.top</p>
+        </div>
 
-    <div id="adminContent" class="flex min-h-screen">
-        <aside class="w-64 bg-slate-900 text-white flex-shrink-0 hidden md:block">
-            <div class="p-6 border-b border-gray-800 font-bold text-xl text-indigo-400">ADMIN CORE</div>
-            <nav class="mt-4">
-                <a href="#" class="sidebar-link block py-3 px-6 bg-slate-800"><i class="fas fa-plus-circle mr-2"></i> New Post</a>
-                <a href="#" class="sidebar-link block py-3 px-6"><i class="fas fa-list mr-2"></i> All Posts</a>
-                <button id="logoutBtn" class="w-full text-left py-3 px-6 text-red-400 hover:bg-red-900/20 mt-10 transition">
-                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
-                </button>
-            </nav>
-        </aside>
-
-        <main class="flex-1 p-8">
-            <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border p-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">ব্লগ পাবলিশ করুন</h2>
-                
-                <div class="space-y-5">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-600">টাইটেল</label>
-                        <input type="text" id="postTitle" placeholder="Enter post title..." class="w-full mt-1 p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-600">URL Slug (যেমন: post1)</label>
-                        <input type="text" id="postSlug" placeholder="post1" class="w-full mt-1 p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-600">বিস্তারিত কন্টেন্ট</label>
-                        <textarea id="postContent" rows="8" placeholder="Write your blog content here..." class="w-full mt-1 p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-                    </div>
-
-                    <button id="publishBtn" class="w-full bg-indigo-600 text-white py-3.5 rounded-xl font-bold hover:bg-indigo-700 shadow-lg transition duration-300">
-                        <i class="fas fa-cloud-upload-alt mr-2"></i> পাবলিশ করুন
-                    </button>
-                </div>
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <input type="email" id="email" placeholder="Admin Email" required 
+                class="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
-        </main>
+            <div>
+                <input type="password" id="password" placeholder="Password" required 
+                class="w-full bg-slate-800 border border-slate-700 text-white p-3 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <button type="submit" id="loginBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-indigo-500/20">
+                SIGN IN
+            </button>
+        </form>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT.firebaseapp.com",
             projectId: "YOUR_PROJECT_ID",
             storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_ID",
+            messagingSenderId: "YOUR_SENDER_ID",
             appId: "YOUR_APP_ID"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
 
-        // --- সিকিউরিটি চেক: লগইন না থাকলে বের করে দাও ---
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('adminContent').style.display = 'flex';
-            } else {
-                window.location.href = "login.html"; // লগইন না থাকলে রিডাইরেক্ট
-            }
-        });
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
 
-        // --- পাবলিশ লজিক ---
-        document.getElementById('publishBtn').addEventListener('click', async () => {
-            const title = document.getElementById('postTitle').value;
-            const slug = document.getElementById('postSlug').value;
-            const content = document.getElementById('postContent').value;
-
-            if(!title || !slug || !content) return alert("দয়া করে সব ঘর পূরণ করুন!");
-
-            try {
-                await addDoc(collection(db, "posts"), {
-                    title, slug, content, 
-                    createdAt: serverTimestamp()
+            btn.innerText = "Authenticating...";
+            
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    window.location.href = "admin.html"; // Redirect to admin panel
+                })
+                .catch((error) => {
+                    alert("Access Denied: " + error.message);
+                    btn.innerText = "SIGN IN";
                 });
-                alert("পোস্টটি সফলভাবে পাবলিশ হয়েছে!");
-                document.getElementById('postTitle').value = "";
-                document.getElementById('postSlug').value = "";
-                document.getElementById('postContent').value = "";
-            } catch (err) {
-                alert("এরর: " + err.message);
-            }
-        });
-
-        // --- লগআউট লজিক ---
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            signOut(auth).then(() => {
-                window.location.href = "login.html";
-            });
         });
     </script>
 </body>
